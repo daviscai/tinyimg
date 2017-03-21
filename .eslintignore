@@ -1,0 +1,5 @@
+assets/js/dist/*
+src/config/locales/*
+app/*
+rollup_iife.config.js
+rollup.config.js
