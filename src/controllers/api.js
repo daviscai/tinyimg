@@ -101,11 +101,23 @@ class Api{
 
     let pngUrls = await this.minPNG(pngUploadFiles, buildDir, this.bnoPath[reqBno]);
     let jpgUrls = await this.minJPEG(jpgUploadFiles, buildDir, this.bnoPath[reqBno]);
-
     let urls = Object.assign({}, pngUrls, jpgUrls);
+
+    // delete source file
+    this.deleteSourceFiles(jpgUploadFiles);
+    this.deleteSourceFiles(pngUploadFiles);
 
     ctx.json(0, 'success', {"urls":urls});
 
+  }
+
+  // 删除压缩前的文件，只保留压缩后的文件
+  deleteSourceFiles(files){
+      if(files){
+          for(let f in files){
+              fs.unlink(files[f])
+          }
+      }
   }
 
   // 压缩png图片
@@ -164,13 +176,22 @@ class Api{
 
   //分发到cdn
   distributeToCDN() {
-    let ctx = this.ctx;
     let buildDir = path.join(appDir, 'uploads/build/');
-    let dest = 'user@server:/pathto/filedir/';  // 需配置免密钥同步文件
+    let destArr = ['user@server:/pathto/filedir/'];  // 需配置免密钥同步文件
+
+    for(let dest of destArr){
+      this.rsyncFile(buildDir, dest);
+    }
+
+  }
+
+  // 同步文件
+  rsyncFile(source, dest){
+    let ctx = this.ctx;
     let rsync = new Rsync()
       .shell('ssh')
       .flags('auz')
-      .source(buildDir)
+      .source(source)
       .destination(dest);
 
     // Execute the command
@@ -183,6 +204,7 @@ class Api{
         ctx.log.error('rsync fail : '+cmd, 'rsync_fail');
       }
     });
+
   }
 
   // 上传客户端

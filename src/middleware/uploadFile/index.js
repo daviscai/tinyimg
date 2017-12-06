@@ -76,4 +76,4 @@ function uploadFile(opts) {
 //       }]);
 //     });
 //   };
-// };
+// }
